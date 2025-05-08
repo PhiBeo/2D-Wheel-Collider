@@ -1,20 +1,36 @@
+using Unity.Collections;
 using UnityEngine;
 
+[Tooltip("This help control both wheel joint component without need to adjust some value individually.")]
 public class MoveVehicle : MonoBehaviour
 {
-    [SerializeField] private WheelJoint2D[] wheelJoint2Ds;
+    [Header("Wheel Joints Components")]
+    [SerializeField] private WheelJoint2D[] wheelJoints;
 
-    [SerializeField] private float targetMotorForce;
-    [SerializeField] private float motorAccelerate;
-    [SerializeField] private float motordeccelerate;
+    [Header("Suspension")]
+    [SerializeField] private float dampingRatio;
+    [SerializeField] private float frequency;
+    [SerializeField] private float angle;
 
-    [SerializeField] private float currentForce = 0f;
+    [Header("Motor")]
+    [SerializeField, Tooltip("Max motor force")] private float targetMotorForce;
+    [SerializeField, Tooltip("How much the force go up in 1 sec")] private float motorAccelerate;
+    [SerializeField, Tooltip("How much the force go down in 1 sec")] private float motordeccelerate;
+
+    private float currentForce = 0f;
 
     private bool isAccel = false;
 
     void Start()
     {
-        
+        foreach(var joint in wheelJoints)
+        {
+            var suspension = joint.suspension;
+            suspension.dampingRatio = dampingRatio;
+            suspension.frequency = frequency;
+            suspension.angle = angle;
+            joint.suspension = suspension;
+        }
     }
 
     void Update()
@@ -46,7 +62,7 @@ public class MoveVehicle : MonoBehaviour
 
         currentForce = Mathf.Clamp(currentForce, -targetMotorForce, targetMotorForce);
 
-        foreach(var wheel in wheelJoint2Ds)
+        foreach(var wheel in wheelJoints)
         {
             JointMotor2D motor = wheel.motor;
             motor.motorSpeed = currentForce;
